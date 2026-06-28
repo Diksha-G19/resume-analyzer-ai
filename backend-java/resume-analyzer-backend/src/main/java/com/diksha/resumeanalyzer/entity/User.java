@@ -1,6 +1,8 @@
 package com.diksha.resumeanalyzer.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -52,4 +54,17 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public List<Resume> getResumes() {
+        return resumes;
+    }
+
+    public void setResumes(List<Resume> resumes) {
+        this.resumes = resumes;
+    }
+
+    @OneToMany(mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<Resume> resumes = new ArrayList<>();
 }

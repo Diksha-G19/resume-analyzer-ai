@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.diksha.resumeanalyzer.dto.LoginRequest;
 import com.diksha.resumeanalyzer.dto.LoginResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class UserService {
@@ -21,6 +23,11 @@ public class UserService {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+
 
     public String register(RegisterRequest request) {
 
@@ -41,26 +48,14 @@ public class UserService {
 
     public LoginResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(
-                        request.getEmail())
-                .orElse(null);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
 
-        if(user == null) {
-            throw new RuntimeException(
-                    "User Not Found");
-        }
-
-        if(!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword())) {
-
-            throw new RuntimeException(
-                    "Invalid Password");
-        }
-
-        String token =
-                jwtService.generateToken(
-                        user.getEmail());
+        String token = jwtService.generateToken(request.getEmail());
 
         return new LoginResponse(token);
     }
