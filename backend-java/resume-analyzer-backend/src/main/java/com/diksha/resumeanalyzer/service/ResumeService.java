@@ -9,6 +9,9 @@ import com.diksha.resumeanalyzer.entity.User;
 import com.diksha.resumeanalyzer.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -40,6 +43,8 @@ public class ResumeService {
         Path filePath = path.resolve(file.getOriginalFilename());
 
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        String extractedText = extractTextFromPDF(filePath);
+
 
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
@@ -55,11 +60,22 @@ public class ResumeService {
         resume.setFileName(file.getOriginalFilename());
         resume.setFilePath(filePath.toString());
         resume.setUploadTime(LocalDateTime.now());
+        resume.setExtractedText(extractedText);
 
         resume.setUser(user);
 
         resumeRepository.save(resume);
+        System.out.println(resume.getExtractedText().substring(0,100));
 
         return file.getOriginalFilename();
+    }
+    private String extractTextFromPDF(Path filePath) throws IOException {
+
+        try (PDDocument document = Loader.loadPDF(filePath.toFile())) {
+
+            PDFTextStripper stripper = new PDFTextStripper();
+
+            return stripper.getText(document);
+        }
     }
 }

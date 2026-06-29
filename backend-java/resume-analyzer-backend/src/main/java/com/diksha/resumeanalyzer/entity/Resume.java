@@ -17,6 +17,8 @@ public class Resume {
     private String filePath;
 
     private LocalDateTime uploadTime;
+    @Column(columnDefinition = "TEXT")
+    private String extractedText;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -25,10 +27,16 @@ public class Resume {
     public Resume() {
     }
 
-    public Resume(String fileName, String filePath, LocalDateTime uploadTime, User user) {
+    public Resume(String fileName,
+                  String filePath,
+                  LocalDateTime uploadTime,
+                  String extractedText,
+                  User user) {
+
         this.fileName = fileName;
         this.filePath = filePath;
         this.uploadTime = uploadTime;
+        this.extractedText = extractedText;
         this.user = user;
     }
 
@@ -66,5 +74,13 @@ public class Resume {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getExtractedText() {
+        return extractedText;
+    }
+
+    public void setExtractedText(String extractedText) {
+        this.extractedText = extractedText;
     }
 }
