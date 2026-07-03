@@ -14,6 +14,12 @@ public class ATSScoreService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeParserService resumeParserService;
+    private static final int CONTACT_WEIGHT = 15;
+    private static final int SUMMARY_WEIGHT = 10;
+    private static final int SKILLS_WEIGHT = 25;
+    private static final int EDUCATION_WEIGHT = 15;
+    private static final int PROJECTS_WEIGHT = 25;
+    private static final int EXPERIENCE_WEIGHT = 10;
 
     public ATSScoreService(ResumeRepository resumeRepository,
                            ResumeParserService resumeParserService) {
@@ -34,6 +40,12 @@ public class ATSScoreService {
         int skillsScore = calculateSkillsScore(resume, suggestions);
         int educationScore = calculateEducationScore(resume, suggestions);
         int projectsScore = calculateProjectsScore(resume, suggestions);
+        int experienceScore =
+                calculateExperienceScore(
+                        resume,
+                        suggestions);
+
+        response.setExperienceScore(experienceScore);
 
         // Set Scores
         response.setContactScore(contactScore);
@@ -44,11 +56,16 @@ public class ATSScoreService {
 
         // Overall Score
         int overall =
-                (contactScore
-                        + summaryScore
-                        + skillsScore
-                        + educationScore
-                        + projectsScore) / 5;
+
+                (contactScore * CONTACT_WEIGHT
+                        + summaryScore * SUMMARY_WEIGHT
+                        + skillsScore * SKILLS_WEIGHT
+                        + educationScore * EDUCATION_WEIGHT
+                        + projectsScore * PROJECTS_WEIGHT
+                        + experienceScore * EXPERIENCE_WEIGHT)
+
+                        /
+                        100;
 
         response.setOverallScore(overall);
         response.setSuggestions(suggestions);
@@ -104,7 +121,9 @@ public class ATSScoreService {
 
         if (summary == null || summary.isBlank()) {
 
-            suggestions.add("Add a professional summary.");
+            suggestions.add(
+                    "Add a 50-80 word professional summary highlighting your strengths and career goals."
+            );
 
             return 0;
         }
@@ -148,7 +167,10 @@ public class ATSScoreService {
             return 60;
         }
 
-        suggestions.add("Add more technical skills.");
+        suggestions.add(
+                "Only " + count +
+                        " technical skills detected. Aim for at least 8-10 relevant skills."
+        );
 
         return 30;
     }
@@ -161,7 +183,9 @@ public class ATSScoreService {
 
         if (education == null || education.isBlank()) {
 
-            suggestions.add("Add your education details.");
+            suggestions.add(
+                    "Mention degree, institution, graduation year, and CGPA/percentage."
+            );
 
             return 0;
         }
@@ -191,10 +215,46 @@ public class ATSScoreService {
         } else {
 
             suggestions.add(
-                    "Describe your projects in more detail.");
+                    "Include technologies used, your role, and measurable outcomes in each project."
+            );
 
             return 70;
         }
+    }
+
+    private int calculateExperienceScore(
+            ParsedResume resume,
+            List<String> suggestions) {
+
+        String experience = resume.getExperience();
+
+        if (experience == null || experience.isBlank()) {
+
+            suggestions.add(
+                    "Include internships, freelance work, research, or relevant practical experience."
+            );
+
+            return 0;
+        }
+
+        int lines = experience.split("\\R").length;
+
+        if (lines >= 8) {
+
+            return 100;
+
+        } else if (lines >= 4) {
+
+            suggestions.add(
+                    "Describe your work experience with measurable achievements.");
+
+            return 80;
+        }
+
+        suggestions.add(
+                "Provide more details about your experience.");
+
+        return 60;
     }
 
 

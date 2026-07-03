@@ -16,9 +16,19 @@ public class ATSResponse {
 
     private int projectsScore;
 
+    private int experienceScore;
+
     private List<String> suggestions;
 
     public ATSResponse() {
+    }
+
+    public int getExperienceScore(){
+        return experienceScore;
+    }
+
+    public void setExperienceScore(int experienceScore){
+        this.experienceScore = experienceScore;
     }
 
     public int getOverallScore() {
