@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
+import re
 
 from services.ai_model import analyze_resume
 
@@ -44,6 +45,54 @@ def health():
         "status": "UP"
     }
 
+import re
+
+HEADINGS = [
+    "Strengths",
+    "Weaknesses",
+    "Suggestions"
+]
+
+def extract_section(text, heading):
+
+    # Remove markdown formatting
+    text = text.replace("**", "").replace("##", "").replace("###", "")
+
+    headings = "|".join(HEADINGS)
+
+    pattern = rf"{heading}\s*:?\s*(.*?)(?=\n(?:{headings})\s*:?\s*|\Z)"
+
+    match = re.search(
+        pattern,
+        text,
+        re.DOTALL | re.IGNORECASE
+    )
+
+    if not match:
+        return []
+
+    section = match.group(1).strip()
+
+    items = []
+
+    for line in section.splitlines():
+
+        line = line.strip()
+
+        if not line:
+            continue
+
+        # Remove -, *, •
+        line = re.sub(r"^[-*•]\s*", "", line)
+
+        # Remove 1. 2. 3.
+        line = re.sub(r"^\d+\.\s*", "", line)
+
+        if line:
+            items.append(line)
+
+    return items
+
 @app.post("/analyze")
 def analyze(request: ResumeRequest):
 
@@ -73,8 +122,9 @@ Certifications:
 """
 
     response = analyze_resume(resume_text)
-
     return {
-        "analysis": response
+        "strengths": extract_section(response, "Strengths"),
+        "weaknesses": extract_section(response, "Weaknesses"),
+        "suggestions": extract_section(response, "Suggestions")
     }
 
