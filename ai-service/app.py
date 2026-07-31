@@ -3,7 +3,14 @@ from pydantic import BaseModel
 from typing import List
 import re
 
-from services.ai_model import analyze_resume
+from services.skill_matcher import (
+    build_resume_profile,
+    extract_skills,
+    compare_skills,
+    calculate_match_percentage,
+)
+
+from services.ai_model import analyze_resume, generate_recommendations
 
 app = FastAPI(
     title="Resume Analyzer AI Service",
@@ -29,6 +36,10 @@ class ResumeRequest(BaseModel):
     internships: str
 
     certifications: str
+
+class JobMatchRequest(BaseModel):
+    resume: ResumeRequest
+    jobDescription: str
 
 
 
@@ -128,3 +139,39 @@ Certifications:
         "suggestions": extract_section(response, "Suggestions")
     }
 
+@app.post("/match")
+def match(request: JobMatchRequest):
+
+    resume = request.resume
+
+    resume_profile = build_resume_profile(resume)
+
+    resume_skills = extract_skills(resume_profile)
+
+    jd_skills = extract_skills(request.jobDescription)
+
+    matched, missing = compare_skills(
+        resume_skills,
+        jd_skills
+    )
+
+    score = calculate_match_percentage(
+        matched,
+        jd_skills
+    )
+    print("Resume Skills:", resume_skills)
+    print("JD Skills:", jd_skills)
+    print("Matched:", matched)
+    print("Missing:", missing)
+    print("Score:", score)
+    ai_response = generate_recommendations(
+    resume,
+    request.jobDescription,
+    matched,
+    missing)
+    return {
+        "matchPercentage": score,
+        "matchedSkills": matched,
+        "missingSkills": missing,
+        "recommendations": ai_response["recommendations"]
+    }

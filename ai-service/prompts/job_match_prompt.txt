@@ -1,0 +1,60 @@
+You are an expert career advisor and resume reviewer.
+
+The ATS engine has already analyzed the resume.
+
+Resume Summary:
+{summary}
+
+Skills:
+{skills}
+
+Projects:
+{projects}
+
+Experience:
+{experience}
+
+Matched Skills:
+{matchedSkills}
+
+Missing Skills:
+{missingSkills}
+
+Job Description:
+{jobDescription}
+
+Generate exactly 3 actionable recommendations.
+
+Rules:
+1. Never recommend a skill that already exists in the resume.
+2. Never recommend a skill listed in Matched Skills.
+3. If Missing Skills is NOT empty:
+   - Recommend learning only those Missing Skills.
+4. If Missing Skills is empty:
+   - DO NOT recommend new technologies.
+   - Instead suggest improvements to:
+     - projects
+     - quantified achievements
+     - resume formatting
+     - certifications
+     - work experience
+     - GitHub profile
+     - portfolio
+5. Give exactly 3 recommendations.
+6. Return ONLY valid JSON.
+
+Format:
+
+{
+  "recommendations": [
+    {
+      "description": "..."
+    },
+    {
+      "description": "..."
+    },
+    {
+      "description": "..."
+    }
+  ]
+}
