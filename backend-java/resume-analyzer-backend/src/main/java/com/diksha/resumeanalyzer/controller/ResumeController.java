@@ -2,6 +2,7 @@ package com.diksha.resumeanalyzer.controller;
 
 
 import com.diksha.resumeanalyzer.dto.UploadResponse;
+import com.diksha.resumeanalyzer.entity.Resume;
 import com.diksha.resumeanalyzer.service.ResumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,8 @@ import com.diksha.resumeanalyzer.dto.ParsedResume;
 import com.diksha.resumeanalyzer.service.ResumeParserService;
 import com.diksha.resumeanalyzer.dto.ATSResponse;
 import com.diksha.resumeanalyzer.service.ATSScoreService;
+import com.diksha.resumeanalyzer.dto.MyResumeResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/resume")
@@ -27,17 +30,20 @@ public class ResumeController {
 
         try {
 
-            String fileName = resumeService.uploadResume(file);
+            Resume resume = resumeService.uploadResume(file);
 
             return ResponseEntity.ok(
-                    new UploadResponse(fileName,
-                            "Resume uploaded successfully")
+                    new UploadResponse(
+                            resume.getFileName(),
+                            "Resume uploaded successfully",
+                            resume.getId()
+                    )
             );
 
         } catch (Exception e) {
 
             return ResponseEntity.badRequest().body(
-                    new UploadResponse("", e.getMessage())
+                    new UploadResponse("", e.getMessage(), null)
             );
         }
     }
@@ -61,5 +67,13 @@ public class ResumeController {
 
         return ResponseEntity.ok(
                 atsScoreService.calculateScoreByResumeId(id));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<MyResumeResponse>> getMyResumes() {
+
+        return ResponseEntity.ok(
+                resumeService.getMyResumes()
+        );
     }
 }

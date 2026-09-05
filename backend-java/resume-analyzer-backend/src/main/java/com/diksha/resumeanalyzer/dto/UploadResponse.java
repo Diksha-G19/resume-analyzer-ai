@@ -4,13 +4,15 @@ public class UploadResponse {
 
     private String fileName;
     private String message;
+    private Long resumeId;
 
     public UploadResponse() {
     }
 
-    public UploadResponse(String fileName, String message) {
+    public UploadResponse(String fileName, String message, Long resumeId) {
         this.fileName = fileName;
         this.message = message;
+        this.resumeId = resumeId;
     }
 
     public String getFileName() {
@@ -27,5 +29,13 @@ public class UploadResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Long getResumeId() {
+        return resumeId;
+    }
+
+    public void setResumeId(Long resumeId) {
+        this.resumeId = resumeId;
     }
 }

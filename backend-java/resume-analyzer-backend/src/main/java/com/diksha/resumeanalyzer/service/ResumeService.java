@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import java.util.List;
+import com.diksha.resumeanalyzer.dto.MyResumeResponse;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -32,7 +34,7 @@ public class ResumeService {
         this.userRepository = userRepository;
     }
 
-    public String uploadResume(MultipartFile file) throws IOException {
+    public Resume uploadResume(MultipartFile file) throws IOException {
 
         Path path = Paths.get(uploadDir);
 
@@ -64,10 +66,11 @@ public class ResumeService {
 
         resume.setUser(user);
 
-        resumeRepository.save(resume);
-        System.out.println(resume.getExtractedText().substring(0,100));
+        Resume savedResume = resumeRepository.save(resume);
 
-        return file.getOriginalFilename();
+        System.out.println(savedResume.getExtractedText().substring(0, 100));
+
+        return savedResume;
     }
     private String extractTextFromPDF(Path filePath) throws IOException {
 
@@ -77,5 +80,26 @@ public class ResumeService {
 
             return stripper.getText(document);
         }
+    }
+    public List<MyResumeResponse> getMyResumes() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        return resumeRepository
+                .findByUserOrderByUploadTimeDesc(user)
+                .stream()
+                .map(resume -> new MyResumeResponse(
+                        resume.getId(),
+                        resume.getFileName(),
+                        resume.getUploadTime()
+                ))
+                .toList();
     }
 }
